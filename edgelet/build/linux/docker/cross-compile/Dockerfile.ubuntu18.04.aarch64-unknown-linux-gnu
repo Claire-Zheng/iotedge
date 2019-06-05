@@ -28,7 +28,7 @@ ENV PATH="${PATH}:/toolchain/bin:/toolchain/${TRIPLE}/bin" \
 
 COPY ubuntu18.04/openssl.sh apt/qemu.sh /                                             
 RUN bash /openssl.sh linux-aarch64 ${TRIPLE}- ${SYSROOT} && \            
-    bash /qemu.sh aarch64                                                 
+    bash /qemu.sh aarch64 2.12.0                                            
       
 COPY apt/zlib.sh /                                                       
 RUN bash /zlib.sh 1.2.11 ${TRIPLE} ${SYSROOT}

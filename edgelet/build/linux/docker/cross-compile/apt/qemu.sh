@@ -2,11 +2,18 @@
 set -ex
 
 main() {
-    local version=2.12.0
+    local version=
 
     local arch=$1 \
-          os=$2 \
+          os=$3 \
           td=$(mktemp -d)
+
+    if [[ $# -eq 0 ]]
+    then
+       version=2.10.0
+    else
+        version=$2
+    fi
 
     local dependencies=(
         autoconf
