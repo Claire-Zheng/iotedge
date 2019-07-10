@@ -13,6 +13,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use actix_web::client::Client;
 use actix_web::error::ErrorInternalServerError;
 use actix_web::Error as ActixError;
 use actix_web::*;
@@ -21,6 +22,7 @@ use edgelet_config::Settings as EdgeSettings;
 use edgelet_core::{Module as EdgeModule, ModuleRuntime};
 use edgelet_docker::DockerConfig;
 use edgelet_http_mgmt::*;
+use iotedge::{connection_to_iot_hub_host, Check};
 use futures::future::{ok, Either, IntoFuture};
 use futures::Async;
 use futures::Future;
@@ -89,6 +91,7 @@ impl Main {
                 .register_data(context.clone())
                 .service(web::resource("/api/modules/").to_async(get_modules))
                 .service(web::resource("/api/provisioning-state/").to(get_state))
+                .service(web::resource("/api/connectivity").to_async(get_connectivity))
         })
         .bind(address)?
         .run()?;
@@ -187,6 +190,25 @@ pub fn get_modules(
         });
 
     Box::new(response)
+}
+
+fn get_connectivity(_req: HttpRequest) -> impl Future<Item = HttpResponse, Error = ActixError> {
+    println!("Request received");
+    
+    // Client::new()
+    //     // .head("https://t-clzhen-raspi-test.azure-devices.net/?api-version=2018-06-08")
+    //     .head("https://www.rust-lang.org")
+    //     .send()
+    //     .map_err(ErrorInternalServerError)
+    //     .and_then(|response| { // ClientResponse<Stream>
+    //         // let c = response.status().as_u16();
+    //         HttpResponse::Ok().body(format!("Status Code: {}", response.status().as_u16()))
+    //     })
+
+    // returns a Result<CheckResult, failure::Error>
+    let mut check = Check::new();
+    let c = connection_to_iot_hub_host(check, UpstreamProtocolPort::Https);
+
 }
 
 fn get_default_config_path() -> PathBuf {

@@ -63,7 +63,7 @@ pub enum OutputFormat {
 ///
 /// Check functions return `Result<CheckResult, failure::Error>` where `Err` represents the check failed.
 #[derive(Debug)]
-enum CheckResult {
+pub enum CheckResult {
     /// Check succeeded.
     Ok,
 
@@ -1411,7 +1411,7 @@ fn connection_to_dps_endpoint(check: &mut Check) -> Result<CheckResult, failure:
     Ok(CheckResult::Ok)
 }
 
-fn connection_to_iot_hub_host(check: &mut Check, port: u16) -> Result<CheckResult, failure::Error> {
+pub fn connection_to_iot_hub_host(check: &mut Check, port: u16) -> Result<CheckResult, failure::Error> {
     let iothub_hostname = if let Some(iothub_hostname) = &check.iothub_hostname {
         iothub_hostname
     } else {
