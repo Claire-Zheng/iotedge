@@ -19,21 +19,45 @@ use crate::Context;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Module {
-    name: String,
+    id: String,
+    r#type: String,
     status: String,
+    config: TConfig,
+    cpu: i32,
+    memoryInMb: i32,
 }
 
 impl Module {
-    pub fn new(name: String, status: String) -> Self {
-        Module { name, status }
+    pub fn new(id: String, status: String) -> Self {
+        Module {
+            id,
+            r#type: String::from("docker"),
+            status,
+            config: TConfig::new(),
+            cpu: 30,
+            memoryInMb: 150,
+        }
     }
 
-    pub fn name(&self) -> &String {
-        &self.name
+    pub fn id(&self) -> &String {
+        &self.id
     }
 
     pub fn status(&self) -> &String {
         &self.status
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TConfig {
+    image: String,
+}
+
+impl TConfig {
+    pub fn new() -> Self {
+        TConfig {
+            image: String::from("mcr.microsoft.com/edgehub:1.0"),
+        }
     }
 }
 
@@ -152,9 +176,13 @@ pub fn get_modules(
 }
 
 fn module_response(mods: Vec<Module>) -> HttpResponse {
-    HttpResponse::Ok()
-        .content_type("text/json")
-        .body(format!("{:?}", mods))
+    serde_json::to_string(&mods)
+        .map(|json| {
+            HttpResponse::Ok()
+                .content_type("text/json")
+                .body(format!("{}", json))
+        })
+        .unwrap_or(HttpResponse::ServiceUnavailable().body("Unable to convert output to JSON"))
 }
 
 pub fn get_health(
@@ -168,11 +196,11 @@ fn health_response(mods: Vec<Module>) -> HttpResponse {
     let mut device_status = Status::new();
     let edge_agent = mods
         .iter()
-        .any(|module| module.name() == "edgeAgent" && module.status() == "running");
+        .any(|module| module.id() == "edgeAgent" && module.status() == "running");
 
     let edge_hub = mods
         .iter()
-        .any(|module| module.name() == "edgeHub" && module.status() == "running");
+        .any(|module| module.id() == "edgeHub" && module.status() == "running");
 
     let other = mods.iter().any(|module| module.status() != "running");
 
