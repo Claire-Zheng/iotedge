@@ -1,13 +1,27 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize)]
 pub enum Health {
     Healthy,
     Degraded,
     Poor,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
+pub struct HealthStatus {
+    health: Health,
+    status: Status,
+}
+
+impl HealthStatus {
+    pub fn new(health: Health, status: Status) -> Self {
+        HealthStatus { health, status }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Status {
     iotedged: bool,
     edge_agent: bool,

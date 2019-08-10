@@ -13,6 +13,7 @@ use futures::{Async, Future};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use crate::health::HealthStatus;
 use crate::health::Status;
 use crate::AuthRequest;
 use crate::Context;
@@ -210,10 +211,14 @@ fn health_response(mods: Vec<Module>) -> HttpResponse {
     device_status.set_other_modules(edge_agent && edge_hub && other);
 
     let health = device_status.return_health();
-    HttpResponse::Ok().body(format!(
-        "Device health: {:?}\nDevice details: {:?}",
-        health, device_status
-    ))
+
+    serde_json::to_string(&HealthStatus::new(health, device_status))
+        .map(|json| {
+            HttpResponse::Ok()
+                .content_type("text/json")
+                .body(json)
+        })
+        .unwrap_or(HttpResponse::ServiceUnavailable().body("Unable to convert to JSON"))
 }
 
 fn return_modules(
