@@ -10,6 +10,7 @@ use edgelet_http_mgmt::*;
 use futures::future::{ok, Either, IntoFuture};
 use futures::stream::Stream;
 use futures::{Async, Future};
+use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -31,12 +32,12 @@ pub struct Module {
 impl Module {
     pub fn new(id: String, status: String) -> Self {
         Module {
-            id,
+            id: id.clone(),
             r#type: String::from("docker"),
             status,
-            config: TConfig::new(),
-            cpu: 30,
-            memoryInMb: 150,
+            config: TConfig::new(id.clone()),
+            cpu: *vec![0, 20, 14, 33, 27, 24, 4, 8].choose(&mut rand::thread_rng()).unwrap(),
+            memoryInMb: *vec![150, 200, 140, 175, 190, 80, 125, 75].choose(&mut rand::thread_rng()).unwrap(),
         }
     }
 
@@ -55,9 +56,9 @@ pub struct TConfig {
 }
 
 impl TConfig {
-    pub fn new() -> Self {
+    pub fn new(id: String) -> Self {
         TConfig {
-            image: String::from("mcr.microsoft.com/edgehub:1.0"),
+            image: format!("mcr.microsoft.com/{}:1.0", id),
         }
     }
 }
