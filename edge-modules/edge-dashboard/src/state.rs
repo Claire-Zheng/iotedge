@@ -103,7 +103,7 @@ pub fn get_file() -> Result<String> {
 pub fn return_response(new_device: &Device) -> HttpResponse {
     // if the new_device is able to be created (fields are able to be parsed into JSON strings)
     match serde_json::to_string(new_device) {
-        Ok(json_file) => HttpResponse::Ok().body(json_file),
+        Ok(json_file) => HttpResponse::Ok().content_type("text/json").body(json_file),
         Err(_)        => HttpResponse::UnprocessableEntity().body("Unable to process device connection string. Are you sure the string is correctly set up?"),
     }
 }
