@@ -55,6 +55,9 @@ impl Status {
         self.other_modules = val;
     }
 
+    // Healthy => iotedged connected, edgeHub, edgeAgent, all custom modules are running
+    // Degraded => iotedged connected, edgeHub, edgeAgent running, 1 or more custom modules down
+    // Poor => either iotedged, edgeHub, or edgeAgent down
     pub fn return_health(&self) -> Health {
         if self.iotedged && self.edge_agent && self.edge_hub {
             if self.other_modules {

@@ -63,6 +63,7 @@ impl TConfig {
     }
 }
 
+// restarts specified module (POST)
 pub fn restart_module(
     req: HttpRequest,
     context: web::Data<Arc<Context>>,
@@ -107,6 +108,7 @@ pub fn restart_module(
     Box::new(response)
 }
 
+// returns all existing logs of a specified module
 pub fn get_logs(
     req: HttpRequest,
     context: web::Data<Arc<Context>>,
@@ -126,9 +128,9 @@ pub fn get_logs(
                     Either::A(
                         Url::parse(&format!("{}/modules/?api-version={}", mgmt_uri, api_ver))
                             .map_err(ErrorInternalServerError)
-                            .and_then(|url| {
+                            .and_then(|url| { // can't connect to the endpoint
                                 ModuleClient::new(&url).map_err(ErrorInternalServerError)
-                            }) // can't connect to the endpoint
+                            }) 
                             .map(move |mod_client| {
                                 mod_client
                                     .logs(module_id, &LogOptions::new())
@@ -170,6 +172,7 @@ pub fn get_logs(
     Box::new(response)
 }
 
+// returns response for list of modules
 pub fn get_modules(
     context: web::Data<Arc<Context>>,
     info: web::Query<AuthRequest>,
@@ -187,6 +190,7 @@ fn module_response(mods: Vec<Module>) -> HttpResponse {
         .unwrap_or(HttpResponse::ServiceUnavailable().body("Unable to convert output to JSON"))
 }
 
+// returns response of health of overall device based on module status
 pub fn get_health(
     context: web::Data<Arc<Context>>,
     info: web::Query<AuthRequest>,
@@ -194,6 +198,7 @@ pub fn get_health(
     return_modules(context, &info.api_version, health_response)
 }
 
+// calculates health of device
 fn health_response(mods: Vec<Module>) -> HttpResponse {
     let mut device_status = Status::new();
     let edge_agent = mods
@@ -222,6 +227,7 @@ fn health_response(mods: Vec<Module>) -> HttpResponse {
         .unwrap_or(HttpResponse::ServiceUnavailable().body("Unable to convert to JSON"))
 }
 
+// returns list of modules with specified function performed 
 fn return_modules(
     context: web::Data<Arc<Context>>,
     api_ver: &str,

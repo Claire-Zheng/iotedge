@@ -9,6 +9,7 @@ use actix_web::*;
 
 use crate::state::{return_response, Device};
 
+// returns the provisioning state, hub name, and device name
 pub fn get_state(device: web::Data<Option<Device>>) -> HttpResponse {
     if let Some(dev) = device.get_ref() {
         return_response(&dev)
@@ -17,6 +18,7 @@ pub fn get_state(device: web::Data<Option<Device>>) -> HttpResponse {
     }
 }
 
+// returns the status of connectivity to internet and the IoT Hub
 pub fn get_connectivity(_req: HttpRequest, device: web::Data<Option<Device>>) -> HttpResponse {
     if let Some(dev) = device.get_ref() {
         if let Some(iothub) = dev.hub_name() {
@@ -25,7 +27,6 @@ pub fn get_connectivity(_req: HttpRequest, device: web::Data<Option<Device>>) ->
             let r = resolve_and_tls_handshake(&(&**iothub_hostname, 443), iothub_hostname);
             match r {
                 Ok(_) => HttpResponse::Ok().content_type("text/json").body("{\"connectivity\": \"connected\"}"),
-                // Ok(_) => HttpResponse::Ok().body("Succesfully connected to IoT Hub."),
                 Err(_) => HttpResponse::UnprocessableEntity()
                     .body("Failed to establish connection with IoT Hub."),
             }
@@ -37,7 +38,7 @@ pub fn get_connectivity(_req: HttpRequest, device: web::Data<Option<Device>>) ->
     }
 }
 
-// taken from edgelet/iotedge
+// taken from edgelet/iotedge to perform TLS handshake with IoT Hub
 fn resolve_and_tls_handshake(
     to_socket_addrs: &impl std::net::ToSocketAddrs,
     tls_hostname: &str,
@@ -61,6 +62,7 @@ fn resolve_and_tls_handshake(
     Ok(())
 }
 
+// returns output of "iotedge check" in JSON format
 pub fn get_diagnostics() -> HttpResponse {
     Command::new("iotedge")
         .args(&["check", "--output", "json"])

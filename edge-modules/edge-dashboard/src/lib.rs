@@ -67,9 +67,7 @@ impl Main {
                 .wrap(Cors::new().send_wildcard())
                 .register_data(context.clone())
                 .register_data(device.clone())
-                .service(
-                    web::resource("/api/modules/{id}/restart").to_async(modules::restart_module),
-                )
+                .service(web::resource("/api/modules/{id}/restart").to_async(modules::restart_module))
                 .service(web::resource("/api/modules/{id}/logs").to_async(modules::get_logs))
                 .service(web::resource("/api/modules").to_async(modules::get_modules))
                 .service(web::resource("/api/health").to_async(modules::get_health))
@@ -89,6 +87,7 @@ pub struct AuthRequest {
     api_version: String,
 }
 
+// sets up the device state and details for use in route handler
 fn set_up(context: web::Data<Arc<Context>>) -> Option<state::Device> {
     if let Ok(_) = state::get_file() {
         // if file exists and can be located
@@ -128,6 +127,15 @@ fn set_up(context: web::Data<Arc<Context>>) -> Option<state::Device> {
     }
 }
 
+// parses data in config.yaml 
+fn get_config(config_path: Option<&str>) -> Result<DockerSettings, Error> {
+    let config_path = config_path
+        .map(|p| Path::new(p).to_owned())
+        .unwrap_or_else(get_default_config_path);
+    Ok(DockerSettings::new(Some(&config_path))?)
+}
+
+// returns path of config.yaml
 fn get_default_config_path() -> PathBuf {
     #[cfg(not(windows))]
     {
@@ -143,11 +151,4 @@ fn get_default_config_path() -> PathBuf {
         )
         .to_owned()
     }
-}
-
-fn get_config(config_path: Option<&str>) -> Result<DockerSettings, Error> {
-    let config_path = config_path
-        .map(|p| Path::new(p).to_owned())
-        .unwrap_or_else(get_default_config_path);
-    Ok(DockerSettings::new(Some(&config_path))?)
 }
